@@ -33,6 +33,114 @@ I build automated solutions for organizations that have large volumes of histori
 
 **Glacier Restore → S3 Copy → File Extraction → Processing → Reconciliation → Snowflake**
 
+## 🔐 Cross-Account Security Design
+
+The solution is designed using an **AWS least-privilege, cross-account security model** for secure recovery and migration of archived data.
+
+### Security Architecture
+
+**Client AWS Account**
+
+- S3 Glacier / Glacier Deep Archive
+- Client-controlled S3 bucket policy
+- Access granted only to the specific D&A IAM role
+- No client AWS credentials are shared
+
+↓
+
+**AWS Account Boundary**
+
+↓
+
+**D&A AWS Account**
+
+- Dedicated EC2 instance
+- Dedicated client-specific IAM role
+- IAM least-privilege policies
+- AWS Systems Manager for secure instance management
+- CloudWatch monitoring and operational logging
+- Python / Boto3 automation
+
+↓
+
+**S3 Destination**
+
+↓
+
+**Snowflake**
+
+### Security Principles
+
+- **No shared AWS access keys or secret credentials**
+- **Dedicated IAM role for each client engagement**
+- **Least-privilege IAM permissions**
+- **Client-controlled cross-account S3 bucket policy**
+- **Source and destination permissions are separately controlled**
+- **Prefix-level access can be applied where required**
+- **Glacier `RestoreObject` permission explicitly controlled**
+- **KMS encryption permissions applied only when required**
+- **AWS Systems Manager used instead of direct SSH where applicable**
+- **CloudWatch and CloudTrail provide operational and audit visibility**
+- **Client data remains within the authorized AWS environment**
+- **Temporary/client-specific infrastructure can be decommissioned after completion**
+
+### Cross-Account Access Model
+
+The D&A EC2 role is authorized through an identity-based IAM policy, while the client S3 bucket independently authorizes the same role through a resource-based bucket policy.
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                    CLIENT AWS ACCOUNT                           │
+│                                                                 │
+│   S3 Glacier / Deep Archive                                    │
+│   client-archive-data                                          │
+│          │                                                      │
+│          │ Bucket Policy                                        │
+│          │ Allow specific D&A IAM Role                          │
+│          ▼                                                      │
+│   Archived Objects                                              │
+│                                                                 │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                    AWS Account Boundary
+                           │
+                           │ Cross-account S3
+                           │
+┌──────────────────────────▼──────────────────────────────────────┐
+│                     D&A AWS ACCOUNT                             │
+│                                                                 │
+│   EC2                                                           │
+│    │                                                            │
+│    │ Instance Profile                                           │
+│    ▼                                                            │
+│   IAM Role                                                      │
+│   ec2-glacier-restore-copy                                     │
+│    │                                                            │
+│    ├── SSM Managed Instance Core                                │
+│    ├── CloudWatch Agent                                        │
+│    ├── Inventory Bucket Read Policy                             │
+│    ├── Client S3 Access Policy                                  │
+│    └── Destination S3 Access Policy                             │
+│                                                                 │
+│    │                                                            │
+│    ▼                                                            │
+│   Python + Boto3                                                │
+│    │                                                            │
+│    ├── List archived objects                                    │
+│    ├── Restore Glacier objects                                  │
+│    ├── Monitor restore status                                   │
+│    ├── Copy restored objects                                    │
+│    ├── Extract / Process                                        │
+│    └── Reconcile                                                │
+│    │                                                            │
+│    ▼                                                            │
+│   S3 Destination                                                │
+│    │                                                            │
+│    ▼                                                            │
+│   Snowflake                                                     │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
 ## Key Achievement
 
 ### 5 Million Files | 100 GB | Completed Within 12 Hours
