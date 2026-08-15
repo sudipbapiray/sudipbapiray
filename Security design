@@ -1,0 +1,51 @@
+┌─────────────────────────────────────────────────────────────────┐
+│                    CLIENT AWS ACCOUNT                           │
+│                                                                 │
+│   S3 Glacier / Deep Archive                                    │
+│   client-archive-data                                          │
+│          │                                                      │
+│          │ Bucket Policy                                        │
+│          │ Allow specific D&A IAM Role                          │
+│          ▼                                                      │
+│   Archived Objects                                              │
+│                                                                 │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                    AWS Account Boundary
+                           │
+                           │ Cross-account S3
+                           │
+┌──────────────────────────▼──────────────────────────────────────┐
+│                     D&A AWS ACCOUNT                             │
+│                                                                 │
+│   EC2                                                           │
+│    │                                                            │
+│    │ Instance Profile                                           │
+│    ▼                                                            │
+│   IAM Role                                                      │
+│   ec2-glacier-restore-copy                                     │
+│    │                                                            │
+│    ├── SSM Managed Instance Core                                │
+│    ├── CloudWatch Agent                                        │
+│    ├── Inventory Bucket Read Policy                             │
+│    ├── Client S3 Access Policy                                  │
+│    └── Destination S3 Access Policy                             │
+│                                                                 │
+│    │                                                            │
+│    ▼                                                            │
+│   Python + Boto3                                                │
+│    │                                                            │
+│    ├── List archived objects                                    │
+│    ├── Restore Glacier objects                                  │
+│    ├── Monitor restore status                                   │
+│    ├── Copy restored objects                                    │
+│    ├── Extract / Process                                        │
+│    └── Reconcile                                                │
+│    │                                                            │
+│    ▼                                                            │
+│   S3 Destination                                                │
+│    │                                                            │
+│    ▼                                                            │
+│   Snowflake                                                     │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
