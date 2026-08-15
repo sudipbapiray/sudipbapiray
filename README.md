@@ -140,7 +140,7 @@ The D&A EC2 role is authorized through an identity-based IAM policy, while the c
 │   Snowflake                                                     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
-
+```
 ## Key Achievement
 
 ### 5 Million Files | 100 GB | Completed Within 12 Hours
