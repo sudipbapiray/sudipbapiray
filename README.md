@@ -29,7 +29,7 @@ Designed and implemented an automated AWS Glacier data recovery and processing p
 
 I build automated solutions for organizations that have large volumes of historical or archived data in AWS Glacier and need to make that data available for analytics, migration, regulatory, or Snowflake ingestion.
 
-[ARCHITECTURE DIAGRAM HERE]
+![AWS Glacier to Snowflake Architecture](./Glacier_S3_automation_arch.jpg)
 
 **Glacier Restore → S3 Copy → File Extraction → Processing → Reconciliation → Snowflake**
 
